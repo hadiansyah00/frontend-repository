@@ -1,0 +1,78 @@
+/* Academic Repository - Custom Styles */
+
+/* Smooth page transitions */
+.page-enter {
+    opacity: 0;
+    transform: translateY(8px);
+}
+.page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+/* Card hover effect */
+.repo-card {
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+.repo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Hero gradient overlay */
+.hero-bg {
+    background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #F0F9FF 100%);
+}
+
+/* Staggered animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animation-delay-100 { animation-delay: 0.1s; }
+.animation-delay-200 { animation-delay: 0.2s; }
+.animation-delay-300 { animation-delay: 0.3s; }
+.animation-delay-400 { animation-delay: 0.4s; }
+
+/* PDF Preview placeholder */
+.pdf-preview-area {
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        #E2E8F0 28px,
+        #E2E8F0 29px
+    );
+}
+
+/* Stat counter */
+@keyframes countUp {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.stat-number {
+    animation: countUp 0.6s ease-out;
+}
+
+/* Search input focus glow */
+.search-glow:focus-within {
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+/* Navbar backdrop */
+.navbar-blur {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}

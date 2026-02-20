@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -8,6 +11,9 @@ export default function RegisterPage() {
     password: "",
     password_confirmation: "",
   });
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({
@@ -16,13 +22,24 @@ export default function RegisterPage() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (form.password !== form.password_confirmation) {
+      toast.error("Password tidak cocok!");
+      return;
+    }
 
-    console.log("Register Data:", form);
+    setLoading(true);
 
-    // TODO:
-    // connect API register backend
+    try {
+      await register(form.name, form.email, form.password);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,9 +98,12 @@ export default function RegisterPage() {
             />
           </div>
 
-          <button className="w-full py-2 text-white transition bg-green-600 rounded-lg hover:bg-green-700">
-            Register
-          </button>
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700 text-white" 
+            disabled={loading}
+          >
+            {loading ? "Memproses..." : "Register"}
+          </Button>
         </form>
 
         <p className="mt-4 text-sm text-center">

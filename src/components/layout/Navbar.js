@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { label: "Beranda", href: "/" },
@@ -19,9 +20,7 @@ const navLinks = [
 export default function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
-
-  // 🔥 nanti ganti dari context / redux / auth hook
-  const isLogin = false;
+  const { isAuthenticated, user } = useAuth();
 
   const isActivePath = (href) => {
     if (href === "/") return location.pathname === "/";
@@ -57,7 +56,7 @@ export default function Navbar() {
             const isActive = isActivePath(link.href);
 
             return (
-              <Link
+               <Link
                 key={link.href}
                 to={link.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
@@ -68,17 +67,19 @@ export default function Navbar() {
               >
                 {link.label}
               </Link>
-            );
+             );
           })}
         </nav>
 
         {/* Desktop Auth */}
         <div className="items-center hidden gap-2 md:flex">
-          {isLogin ? (
-            <Button variant="ghost" className="gap-2">
-              <User className="w-4 h-4" />
-              My Account
-            </Button>
+          {isAuthenticated ? (
+            <Link to="/dashboard">
+              <Button variant="ghost" className="gap-2">
+                <User className="w-4 h-4" />
+                Dashboard ({user?.name.split(" ")[0]})
+              </Button>
+            </Link>
           ) : (
             <>
               <Link to="/login">
@@ -133,17 +134,19 @@ export default function Navbar() {
 
                 {/* Mobile Auth */}
                 <div className="pt-4 mt-4 border-t">
-                  {isLogin ? (
-                    <Button className="w-full gap-2">
-                      <User className="w-4 h-4" />
-                      My Account
-                    </Button>
+                  {isAuthenticated ? (
+                    <Link to="/dashboard" onClick={() => setOpen(false)}>
+                      <Button className="w-full gap-2">
+                        <User className="w-4 h-4" />
+                        Dashboard
+                      </Button>
+                    </Link>
                   ) : (
                     <div className="flex flex-col gap-2">
                       <Link to="/login" onClick={() => setOpen(false)}>
-                        <Button variant="outline" className="w-full">
-                          Login
-                        </Button>
+                         <Button variant="outline" className="w-full">
+                           Login
+                         </Button>
                       </Link>
 
                       <Link to="/register" onClick={() => setOpen(false)}>

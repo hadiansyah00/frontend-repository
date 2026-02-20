@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({
@@ -14,19 +19,26 @@ export default function LoginPage() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    console.log("Login Data:", form);
-
-    // TODO:
-    // connect ke API login backend kamu
+    try {
+      await login(form.email, form.password);
+      // Let GuestRoute or navigate handle navigation. login() in context doesn't navigate automatically,
+      // it just sets user. But wait, we should navigate here.
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex items-center justify-center py-16">
       <div className="w-full max-w-md p-8 bg-white shadow-xl rounded-2xl">
-        <h2 className="mb-6 text-2xl font-bold text-center">Login Account</h2>
+        <h2 className="mb-6 text-2xl font-bold text-center">Login Dashboard</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -53,9 +65,12 @@ export default function LoginPage() {
             />
           </div>
 
-          <button className="w-full py-2 text-white transition bg-blue-600 rounded-lg hover:bg-blue-700">
-            Login
-          </button>
+          <Button 
+            className="w-full" 
+            disabled={loading}
+          >
+            {loading ? "Memproses..." : "Login"}
+          </Button>
         </form>
 
         <p className="mt-4 text-sm text-center">

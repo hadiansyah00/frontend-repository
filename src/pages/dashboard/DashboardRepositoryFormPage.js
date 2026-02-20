@@ -43,7 +43,7 @@ export default function DashboardRepositoryFormPage() {
           masterDataService.getDocTypes(),
         ]);
         setActiveProdis(prodis.filter((p) => p.status === "Aktif"));
-        setActiveDocTypes(docTypes.filter((d) => d.isActive));
+        setActiveDocTypes(docTypes.filter((d) => d.is_active));
 
         if (isEdit) {
           const repo = await repositoryService.getRepositoryById(id);
@@ -308,10 +308,10 @@ export default function DashboardRepositoryFormPage() {
 
         <div className="flex justify-end gap-3 mt-8">
           <Link to="/dashboard/repositories">
-            <Button type="button" variant="outline">Batal</Button>
+            <Button type="button" variant="outline" disabled={submitLoading}>Batal</Button>
           </Link>
-          <Button type="submit" className="gap-2 text-white bg-orange-600 hover:bg-orange-700">
-            <Save className="w-4 h-4" />
+          <Button type="submit" disabled={submitLoading} className="gap-2 text-white bg-orange-600 hover:bg-orange-700">
+            {submitLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {form.status === "Pending Review" ? "Kirim ke Pembimbing" : isEdit ? "Simpan Perbaikan" : "Simpan Dokumen"}
           </Button>
         </div>

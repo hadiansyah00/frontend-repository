@@ -9,7 +9,8 @@ import {
   FileText,
   Clock,
   ShieldAlert,
-  DownloadCloud
+  DownloadCloud,
+  FilePlus
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -47,6 +48,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // Mahasiswa & Dosen specific menus
     if (user?.role?.slug === "mahasiswa" || user?.role?.slug === "dosen") {
       repoGroup.push({ icon: FileText, label: "My Repositories", href: "/dashboard/repositories/my" });
+      repoGroup.push({ icon: FilePlus, label: "Unggah Baru", href: "/dashboard/repositories/new" });
     }
 
     // Approvals (Admin/Reviewer)

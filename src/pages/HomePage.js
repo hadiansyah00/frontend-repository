@@ -1,15 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, Download, Users, Layers, ArrowRight } from "lucide-react";
+import { BookOpen, Download, Users, Layers, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/common/SearchInput";
 import RepositoryCard from "@/components/repository/RepositoryCard";
-import { repositories, stats } from "@/data/repositories";
+import repositoryService from "@/services/repositoryService";
+import dashboardService from "@/services/dashboardService";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [latestRepos, setLatestRepos] = useState([]);
+  const [stats, setStats] = useState({
+    totalRepositories: 0,
+    totalDownloads: 0,
+    totalUsers: 0,
+    totalCategories: 0,
+  });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const latestRepos = repositories.slice(0, 4);
+
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const [repoRes, statsRes] = await Promise.all([
+          repositoryService.getRepositories({ page: 1, limit: 4 }),
+          dashboardService.getStats(),
+        ]);
+
+        if (repoRes.data) {
+          setLatestRepos(repoRes.data);
+        }
+
+        if (statsRes.success) {
+          setStats({
+            totalRepositories: statsRes.stats.totalPublished || 0,
+            totalDownloads: statsRes.stats.totalDownloads || 0,
+            totalUsers: statsRes.stats.totalUsers || 0,
+            totalCategories: statsRes.barData?.length || 0, // Using prodi count as categories
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch home data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
 
   const handleSearch = (val) => {
     setSearchQuery(val);
@@ -39,17 +77,25 @@ export default function HomePage() {
     },
     {
       icon: Users,
-      value: stats.totalAuthors.toLocaleString(),
-      label: "Penulis",
+      value: stats.totalUsers.toLocaleString(),
+      label: "Pengguna",
       color: "#8B5CF6",
     },
     {
       icon: Layers,
       value: stats.totalCategories.toLocaleString(),
-      label: "Kategori",
+      label: "Program Studi",
       color: "#F59E0B",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div data-testid="homepage">
@@ -79,7 +125,7 @@ export default function HomePage() {
             >
               <SearchInput
                 value={searchQuery}
-                onChange={setSearchQuery}
+                onChange={handleSearch}
                 placeholder="Cari judul, penulis, atau kata kunci..."
                 variant="hero"
               />
@@ -174,3 +220,4 @@ export default function HomePage() {
     </div>
   );
 }
+

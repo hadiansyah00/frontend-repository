@@ -17,6 +17,8 @@ export default function DashboardRepositoryListPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [docTypeFilter, setDocTypeFilter] = useState("");
+  const [docTypes, setDocTypes] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page")) || 1;
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0 });
@@ -33,6 +35,7 @@ export default function DashboardRepositoryListPage() {
         page,
         limit: 10,
         search: searchTerm,
+        doc_type_id: docTypeFilter || undefined
       });
       setData(res.data);
       setPagination(res.pagination);
@@ -41,7 +44,21 @@ export default function DashboardRepositoryListPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm]);
+  }, [page, searchTerm, docTypeFilter]);
+
+  const fetchDocTypes = async () => {
+    try {
+      // Import masterDataService dynamically or if it's already there (need to add import)
+      const res = await (await import("@/services/masterDataService")).default.getDocTypes();
+      setDocTypes(Array.isArray(res) ? res : res.data || []);
+    } catch (error) {
+      console.error("Failed fetching doc types:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocTypes();
+  }, []);
 
   useEffect(() => {
     fetchRepositories();
@@ -50,6 +67,11 @@ export default function DashboardRepositoryListPage() {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setSearchParams({ page: 1 }); // reset to page 1 on search
+  };
+
+  const handleDocTypeChange = (e) => {
+    setDocTypeFilter(e.target.value);
+    setSearchParams({ page: 1 });
   };
 
   const handlePageChange = (newPage) => {
@@ -95,15 +117,28 @@ export default function DashboardRepositoryListPage() {
       </div>
 
       <div className="p-4 bg-white border border-slate-200 rounded-xl">
-        <div className="flex items-center gap-2 mb-4 px-3 py-2 border border-slate-200 rounded-lg w-full max-w-md focus-within:ring-2 focus-within:ring-orange-200 focus-within:border-orange-500 transition-all">
-          <Search className="w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari judul atau penulis..."
-            className="w-full text-sm outline-none bg-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg w-full max-w-md focus-within:ring-2 focus-within:ring-orange-200 focus-within:border-orange-500 transition-all">
+            <Search className="w-5 h-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari judul atau penulis..."
+              className="w-full text-sm outline-none bg-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <select
+             className="px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none bg-white focus:ring-2 focus:ring-orange-200 w-full sm:w-[250px]"
+             value={docTypeFilter}
+             onChange={handleDocTypeChange}
+          >
+             <option value="">Semua Jenis Dokumen</option>
+             {docTypes.map(type => (
+                <option key={type.id} value={type.id}>{type.name}</option>
+             ))}
+          </select>
         </div>
 
         <div className="overflow-x-auto">
@@ -112,7 +147,7 @@ export default function DashboardRepositoryListPage() {
               <tr>
                 <th className="px-6 py-3">Judul</th>
                 <th className="px-6 py-3">Penulis</th>
-                <th className="px-6 py-3">Kategori</th>
+                <th className="px-6 py-3">Jenis Dokumen</th>
                 <th className="px-6 py-3 text-center">Tahun</th>
                 <th className="px-6 py-3 text-center">Status</th>
                 <th className="px-6 py-3 text-right">Aksi</th>
@@ -133,7 +168,7 @@ export default function DashboardRepositoryListPage() {
                       {repo.title}
                     </td>
                     <td className="px-6 py-4 text-slate-600">{repo.author}</td>
-                    <td className="px-6 py-4 text-slate-600">{repo.doc_type?.name}</td>
+                    <td className="px-6 py-4 text-slate-600">{repo.docType?.name || "-"}</td>
                     <td className="px-6 py-4 text-center text-slate-600">{repo.year}</td>
                     <td className="px-6 py-4 text-center">
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${

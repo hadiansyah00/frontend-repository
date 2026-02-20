@@ -5,62 +5,56 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function RepositoryCard({ repository }) {
-  const { slug, judul, penulis, tahun, abstrak, downloads } = repository;
+  const { id, title, author, year, abstract } = repository;
 
   return (
     <Card
       className="repo-card group border border-[#E2E8F0] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden"
-      data-testid={`repository-card-${slug}`}
+      data-testid={`repository-card-${id}`}
     >
       <CardContent className="p-6 md:p-7 flex flex-col h-full">
         {/* Year Badge + Downloads */}
         <div className="flex items-center justify-between mb-4">
           <Badge
             variant="secondary"
-            className="bg-[#F0F9FF] text-[#0EA5E9] border-0 font-semibold text-xs px-2.5 py-1"
-            data-testid={`card-year-${slug}`}
+            className="bg-[#FFF7ED] text-[#F97316] border-0 font-semibold text-xs px-2.5 py-1"
+            data-testid={`card-year-${id}`}
           >
             <Calendar className="w-3 h-3 mr-1" />
-            {tahun}
+            {year || "-"}
           </Badge>
-          <span
-            className="flex items-center gap-1 text-xs text-[#64748B]"
-            data-testid={`card-downloads-${slug}`}
-          >
-            <Download className="w-3.5 h-3.5" />
-            {downloads.toLocaleString()}
-          </span>
+          {/* Download count is currently not included in the list API response, so omitting it or leaving static for now */}
         </div>
 
         {/* Title */}
         <h3
-          className="font-serif text-lg font-bold text-[#0F172A] leading-snug mb-2 line-clamp-2 group-hover:text-[#0EA5E9] transition-colors duration-200"
-          data-testid={`card-title-${slug}`}
+          className="font-serif text-lg font-bold text-[#0F172A] leading-snug mb-2 line-clamp-2 group-hover:text-[#F97316] transition-colors duration-200"
+          data-testid={`card-title-${id}`}
         >
-          {judul}
+          {title}
         </h3>
 
         {/* Author */}
         <p
           className="text-sm text-[#64748B] mb-3"
-          data-testid={`card-author-${slug}`}
+          data-testid={`card-author-${id}`}
         >
-          {penulis}
+          {author}
         </p>
 
         {/* Abstract */}
         <p
           className="text-sm text-[#334155] leading-relaxed line-clamp-3 mb-5 flex-1"
-          data-testid={`card-abstract-${slug}`}
+          data-testid={`card-abstract-${id}`}
         >
-          {abstrak}
+          {abstract || "Tidak ada abstrak."}
         </p>
 
         {/* Action */}
-        <Link to={`/repository/${slug}`} data-testid={`card-detail-btn-${slug}`}>
+        <Link to={`/repository/${id}`} data-testid={`card-detail-btn-${id}`}>
           <Button
             variant="ghost"
-            className="w-full justify-between text-[#0EA5E9] hover:text-[#0284C7] hover:bg-[#F0F9FF] font-medium text-sm h-10 px-4"
+            className="w-full justify-between text-[#F97316] hover:text-[#EA580C] hover:bg-[#FFF7ED] font-medium text-sm h-10 px-4"
           >
             Lihat Detail
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -70,3 +64,4 @@ export default function RepositoryCard({ repository }) {
     </Card>
   );
 }
+

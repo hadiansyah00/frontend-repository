@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Filter } from "lucide-react";
+import { Filter, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -19,7 +19,9 @@ import {
 } from "@/components/ui/pagination";
 import SearchInput from "@/components/common/SearchInput";
 import RepositoryCard from "@/components/repository/RepositoryCard";
-import { repositories, getAuthors, getYears } from "@/data/repositories";
+import repositoryService from "@/services/repositoryService";
+import masterDataService from "@/services/masterDataService";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -28,67 +30,85 @@ export default function RepositoryListPage() {
   const initialQuery = searchParams.get("q") || "";
 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [yearFilter, setYearFilter] = useState("all");
-  const [authorFilter, setAuthorFilter] = useState("all");
+  const [prodiFilter, setProdiFilter] = useState("all");
+  const [docTypeFilter, setDocTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  
+  const [repositories, setRepositories] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const authors = getAuthors();
-  const years = getYears();
+  // Master data for filters
+  const [prodis, setProdis] = useState([]);
+  const [docTypes, setDocTypes] = useState([]);
 
-  const filteredRepos = useMemo(() => {
-    let result = [...repositories];
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const [prodiRes, docTypeRes] = await Promise.all([
+          masterDataService.getProdis(),
+          masterDataService.getDocTypes(),
+        ]);
+        setProdis(Array.isArray(prodiRes) ? prodiRes : prodiRes.data || []);
+        setDocTypes(Array.isArray(docTypeRes) ? docTypeRes : docTypeRes.data || []);
+      } catch (error) {
+        console.error("Failed to fetch master data for filters:", error);
+      }
+    };
+    fetchMasterData();
+  }, []);
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (r) =>
-          r.judul.toLowerCase().includes(q) ||
-          r.penulis.toLowerCase().includes(q) ||
-          r.abstrak.toLowerCase().includes(q),
-      );
-    }
+  useEffect(() => {
+    const fetchRepositories = async () => {
+      setLoading(true);
+      try {
+        const params = {
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          search: searchQuery,
+          status: "published", // Only show published public repositories
+        };
 
-    if (yearFilter !== "all") {
-      result = result.filter((r) => r.tahun === parseInt(yearFilter));
-    }
+        if (prodiFilter !== "all") params.prodi_id = prodiFilter;
+        if (docTypeFilter !== "all") params.doc_type_id = docTypeFilter;
 
-    if (authorFilter !== "all") {
-      result = result.filter((r) => r.penulis === authorFilter);
-    }
+        const res = await repositoryService.getRepositories(params);
+        setRepositories(res.data || []);
+        if (res.pagination) {
+          setTotalPages(res.pagination.totalPages);
+          setTotalItems(res.pagination.totalItems);
+        }
+      } catch (error) {
+        console.error("Failed to fetch repositories:", error);
+        toast.error("Gagal mengambil data repositori.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return result;
-  }, [searchQuery, yearFilter, authorFilter]);
+    // Implemented a tiny debounce effect to avoid spamming the API while typing
+    const timeoutId = setTimeout(() => {
+      fetchRepositories();
+    }, 300);
 
-  const totalPages = Math.ceil(filteredRepos.length / ITEMS_PER_PAGE);
-  const paginatedRepos = filteredRepos.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, prodiFilter, docTypeFilter, currentPage]);
 
   const handleSearchChange = (val) => {
     setSearchQuery(val);
     setCurrentPage(1);
   };
 
-  const handleYearChange = (val) => {
-    setYearFilter(val);
-    setCurrentPage(1);
-  };
-
-  const handleAuthorChange = (val) => {
-    setAuthorFilter(val);
-    setCurrentPage(1);
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
-    setYearFilter("all");
-    setAuthorFilter("all");
+    setProdiFilter("all");
+    setDocTypeFilter("all");
     setCurrentPage(1);
   };
 
   const hasActiveFilters =
-    searchQuery.trim() || yearFilter !== "all" || authorFilter !== "all";
+    searchQuery.trim() || prodiFilter !== "all" || docTypeFilter !== "all";
 
   return (
     <div
@@ -123,7 +143,7 @@ export default function RepositoryListPage() {
               <SearchInput
                 value={searchQuery}
                 onChange={handleSearchChange}
-                placeholder="Cari judul, penulis, atau abstrak..."
+                placeholder="Cari judul atau penulis..."
               />
             </div>
 
@@ -135,42 +155,42 @@ export default function RepositoryListPage() {
               </div>
 
               <Select
-                value={yearFilter}
-                onValueChange={handleYearChange}
-                data-testid="year-filter"
+                value={prodiFilter}
+                onValueChange={(val) => { setProdiFilter(val); setCurrentPage(1); }}
+                data-testid="prodi-filter"
               >
                 <SelectTrigger
-                  className="w-[130px] bg-white border-[#E2E8F0] text-sm"
-                  data-testid="year-filter-trigger"
+                  className="w-[180px] bg-white border-[#E2E8F0] text-sm"
+                  data-testid="prodi-filter-trigger"
                 >
-                  <SelectValue placeholder="Tahun" />
+                  <SelectValue placeholder="Program Studi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Tahun</SelectItem>
-                  {years.map((year) => (
-                    <SelectItem key={year} value={String(year)}>
-                      {year}
+                  <SelectItem value="all">Semua Prodi</SelectItem>
+                  {prodis.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               <Select
-                value={authorFilter}
-                onValueChange={handleAuthorChange}
-                data-testid="author-filter"
+                value={docTypeFilter}
+                onValueChange={(val) => { setDocTypeFilter(val); setCurrentPage(1); }}
+                data-testid="doctype-filter"
               >
                 <SelectTrigger
                   className="w-[180px] bg-white border-[#E2E8F0] text-sm"
-                  data-testid="author-filter-trigger"
+                  data-testid="doctype-filter-trigger"
                 >
-                  <SelectValue placeholder="Penulis" />
+                  <SelectValue placeholder="Jenis Dokumen" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Penulis</SelectItem>
-                  {authors.map((author) => (
-                    <SelectItem key={author} value={author}>
-                      {author}
+                  <SelectItem value="all">Semua Jenis</SelectItem>
+                  {docTypes.map((dt) => (
+                    <SelectItem key={dt.id} value={String(dt.id)}>
+                      {dt.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -194,91 +214,98 @@ export default function RepositoryListPage() {
 
       {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Count */}
-        <p className="text-sm text-[#64748B] mb-6" data-testid="results-count">
-          Menampilkan {paginatedRepos.length} dari {filteredRepos.length}{" "}
-          repositori
-        </p>
-
-        {paginatedRepos.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
+          </div>
+        ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedRepos.map((repo) => (
-                <RepositoryCard key={repo.id} repository={repo} />
-              ))}
-            </div>
+            <p className="text-sm text-[#64748B] mb-6" data-testid="results-count">
+              Menampilkan {repositories.length} hasil (Total {totalItems} repositori)
+            </p>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-12" data-testid="pagination">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() =>
-                          setCurrentPage((p) => Math.max(1, p - 1))
-                        }
-                        className={
-                          currentPage === 1
-                            ? "pointer-events-none opacity-40"
-                            : "cursor-pointer"
-                        }
-                        data-testid="pagination-prev"
-                      />
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            isActive={page === currentPage}
-                            onClick={() => setCurrentPage(page)}
-                            className="cursor-pointer"
-                            data-testid={`pagination-page-${page}`}
-                          >
-                            {page}
-                          </PaginationLink>
+            {repositories.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {repositories.map((repo) => (
+                    <RepositoryCard key={repo.id} repository={repo} />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-12" data-testid="pagination">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() =>
+                              setCurrentPage((p) => Math.max(1, p - 1))
+                            }
+                            className={
+                              currentPage === 1
+                                ? "pointer-events-none opacity-40"
+                                : "cursor-pointer"
+                            }
+                            data-testid="pagination-prev"
+                          />
                         </PaginationItem>
-                      ),
-                    )}
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() =>
-                          setCurrentPage((p) => Math.min(totalPages, p + 1))
-                        }
-                        className={
-                          currentPage === totalPages
-                            ? "pointer-events-none opacity-40"
-                            : "cursor-pointer"
-                        }
-                        data-testid="pagination-next"
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                          (page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                isActive={page === currentPage}
+                                onClick={() => setCurrentPage(page)}
+                                className="cursor-pointer"
+                                data-testid={`pagination-page-${page}`}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ),
+                        )}
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() =>
+                              setCurrentPage((p) => Math.min(totalPages, p + 1))
+                            }
+                            className={
+                              currentPage === totalPages
+                                ? "pointer-events-none opacity-40"
+                                : "cursor-pointer"
+                            }
+                            data-testid="pagination-next"
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-20" data-testid="no-results">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F1F5F9] flex items-center justify-center">
+                  <Filter className="w-7 h-7 text-[#94A3B8]" />
+                </div>
+                <h3 className="font-serif text-xl font-semibold text-[#0F172A] mb-2">
+                  Tidak ada hasil
+                </h3>
+                <p className="text-sm text-[#64748B] mb-6">
+                  Tidak ditemukan repositori yang sesuai dengan pencarian Anda.
+                </p>
+                <Button
+                  onClick={clearFilters}
+                  className="bg-[#F97316] hover:bg-[#ffc12fe7] text-white"
+                  data-testid="reset-search-btn"
+                >
+                  Reset Pencarian
+                </Button>
               </div>
             )}
           </>
-        ) : (
-          <div className="text-center py-20" data-testid="no-results">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F1F5F9] flex items-center justify-center">
-              <Filter className="w-7 h-7 text-[#94A3B8]" />
-            </div>
-            <h3 className="font-serif text-xl font-semibold text-[#0F172A] mb-2">
-              Tidak ada hasil
-            </h3>
-            <p className="text-sm text-[#64748B] mb-6">
-              Tidak ditemukan repositori yang sesuai dengan pencarian Anda.
-            </p>
-            <Button
-              onClick={clearFilters}
-              className="bg-[#F97316] hover:bg-[#0284C7] text-white"
-              data-testid="reset-search-btn"
-            >
-              Reset Pencarian
-            </Button>
-          </div>
         )}
       </div>
     </div>
   );
 }
+

@@ -22,7 +22,7 @@ export default function DocTypePage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
-  const [form, setForm] = useState({ name: "", slug: "", description: "", isActive: true });
+  const [form, setForm] = useState({ name: "", slug: "", description: "", is_active: true });
   const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
@@ -48,9 +48,9 @@ export default function DocTypePage() {
 
   const toggleStatus = async (item) => {
     try {
-      const newStatus = !item.isActive;
-      await masterDataService.updateDocType(item.id, { isActive: newStatus });
-      setData(data.map(d => d.id === item.id ? { ...d, isActive: newStatus } : d));
+      const newStatus = !item.is_active;
+      await masterDataService.updateDocType(item.id, { is_active: newStatus });
+      setData(data.map(d => d.id === item.id ? { ...d, is_active: newStatus } : d));
       toast.success(`Status ${item.name} berhasil diubah`);
     } catch (error) {
       toast.error("Gagal mengubah status");
@@ -60,13 +60,13 @@ export default function DocTypePage() {
   // --- CRUD Handlers ---
   const openCreate = () => {
     setEditingItem(null);
-    setForm({ name: "", slug: "", description: "", isActive: true });
+    setForm({ name: "", slug: "", description: "", is_active: true });
     setIsFormOpen(true);
   };
 
   const openEdit = (item) => {
     setEditingItem(item);
-    setForm({ name: item.name, slug: item.slug, description: item.description || "", isActive: item.isActive });
+    setForm({ name: item.name, slug: item.slug, description: item.description || "", is_active: item.is_active });
     setIsFormOpen(true);
   };
 
@@ -181,13 +181,13 @@ export default function DocTypePage() {
                           <button
                             onClick={() => toggleStatus(item)}
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
-                              item.isActive
+                              item.is_active
                                 ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                             }`}
                           >
-                            {item.isActive ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5 text-slate-400" />}
-                            {item.isActive ? 'Aktif' : 'Tidak Aktif'}
+                            {item.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5 text-slate-400" />}
+                            {item.is_active ? 'Aktif' : 'Tidak Aktif'}
                           </button>
                        </td>
                        <td className="px-6 py-4 text-right">
@@ -238,8 +238,11 @@ export default function DocTypePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>Batal</Button>
-            <Button onClick={handleSave} className="bg-orange-500 hover:bg-orange-600">{editingItem ? "Simpan Perubahan" : "Tambah Dokumen"}</Button>
+            <Button variant="outline" onClick={() => setIsFormOpen(false)} disabled={submitLoading}>Batal</Button>
+            <Button onClick={handleSave} className="bg-orange-500 hover:bg-orange-600" disabled={submitLoading}>
+              {submitLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {editingItem ? "Simpan Perubahan" : "Tambah Dokumen"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -254,8 +257,11 @@ export default function DocTypePage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Batal</Button>
-            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Ya, Hapus</Button>
+            <Button variant="outline" onClick={() => setIsDeleteOpen(false)} disabled={submitLoading}>Batal</Button>
+            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700" disabled={submitLoading}>
+              {submitLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Ya, Hapus
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

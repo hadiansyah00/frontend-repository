@@ -19,11 +19,11 @@ export default function Footer() {
             >
               {/* Logo */}
               <div className="flex items-center justify-center w-10 h-10 overflow-hidden transition-transform duration-300 rounded-lg group-hover:scale-105">
-                <img
-                  src="/images/logo/stikes-bogor-husada.png"
-                  alt="Logo STIKes Bogor Husada"
-                  className="object-contain w-full h-full"
-                />
+                  <img
+              src="/images/logo/stikes-bogor-husda.png"
+              alt="Logo STIKes Bogor Husada"
+              className="object-contain w-full h-full"
+            />
               </div>
 
               {/* Brand Text */}

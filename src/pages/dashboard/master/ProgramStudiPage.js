@@ -237,8 +237,11 @@ export default function ProgramStudiPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>Batal</Button>
-            <Button onClick={handleSave} className="bg-orange-500 hover:bg-orange-600">{editingItem ? "Simpan Perubahan" : "Tambah Prodi"}</Button>
+            <Button variant="outline" onClick={() => setIsFormOpen(false)} disabled={submitLoading}>Batal</Button>
+            <Button onClick={handleSave} className="bg-orange-500 hover:bg-orange-600" disabled={submitLoading}>
+              {submitLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {editingItem ? "Simpan Perubahan" : "Tambah Prodi"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -253,8 +256,11 @@ export default function ProgramStudiPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Batal</Button>
-            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Ya, Hapus</Button>
+            <Button variant="outline" onClick={() => setIsDeleteOpen(false)} disabled={submitLoading}>Batal</Button>
+            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700" disabled={submitLoading}>
+              {submitLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Ya, Hapus
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

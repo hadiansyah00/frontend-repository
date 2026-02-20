@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -8,17 +9,41 @@ import {
   Clock,
   Shield,
   BookOpen,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { repositories } from "@/data/repositories";
+import repositoryService from "@/services/repositoryService";
 
 export default function RepositoryDetailPage() {
-  const { slug } = useParams();
-  const repo = repositories.find((r) => r.slug === slug);
+  const { id } = useParams();
+  const [repo, setRepo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRepo = async () => {
+      try {
+        const data = await repositoryService.getRepositoryById(id);
+        setRepo(data);
+      } catch (error) {
+        console.error("Failed to fetch repository details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRepo();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
+      </div>
+    );
+  }
 
   if (!repo) {
     return (
@@ -48,26 +73,38 @@ export default function RepositoryDetailPage() {
   }
 
   const handleDownload = () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      toast.error("Harap login terlebih dahulu untuk mengunduh dokumen.");
+      return;
+    }
+
     toast.success("Unduhan dimulai", {
-      description: `Mengunduh "${repo.judul}"`,
+      description: `Mengunduh "${repo.title}"`,
     });
+
+    const url = repositoryService.getDownloadUrl(id);
+    const downloadUrl = `${url}?token=${token}`;
+    
+    // Open in new tab which will trigger the browser download due to content-disposition
+    window.open(downloadUrl, "_blank");
   };
 
   const metaItems = [
     {
       icon: User,
       label: "Penulis",
-      value: repo.penulis,
+      value: repo.author,
     },
     {
       icon: Calendar,
       label: "Tahun",
-      value: repo.tahun,
+      value: repo.year || "-",
     },
     {
       icon: Clock,
       label: "Tanggal Terbit",
-      value: new Date(repo.tanggal_terbit).toLocaleDateString("id-ID", {
+      value: new Date(repo.created_at).toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -76,17 +113,17 @@ export default function RepositoryDetailPage() {
     {
       icon: Shield,
       label: "Jenis Akses",
-      value: repo.jenis_akses,
+      value: repo.status === "published" ? "Open Access" : "Private",
     },
     {
       icon: Download,
       label: "Jumlah Unduhan",
-      value: repo.downloads.toLocaleString(),
+      value: (repo.download_count || 0).toLocaleString(),
     },
     {
       icon: FileText,
       label: "Kategori",
-      value: repo.kategori,
+      value: repo.docType?.name || "Lainnya",
     },
   ];
 
@@ -115,28 +152,33 @@ export default function RepositoryDetailPage() {
                   className="bg-[#F0F9FF] text-[#F97316] border-0 font-semibold text-xs"
                   data-testid="detail-year-badge"
                 >
-                  {repo.tahun}
+                  {repo.year || "-"}
                 </Badge>
                 <Badge
                   variant={
-                    repo.jenis_akses === "Open Access" ? "secondary" : "outline"
+                    repo.status === "published" ? "secondary" : "outline"
                   }
                   className={
-                    repo.jenis_akses === "Open Access"
+                    repo.status === "published"
                       ? "bg-emerald-50 text-emerald-600 border-0 text-xs"
                       : "text-[#64748B] text-xs"
                   }
                   data-testid="detail-access-badge"
                 >
-                  {repo.jenis_akses}
+                  {repo.status === "published" ? "Open Access" : "Private"}
                 </Badge>
+                {repo.prodi && (
+                  <Badge variant="outline" className="text-xs text-[#64748B]">
+                    {repo.prodi.name}
+                  </Badge>
+                )}
               </div>
 
               <h1
                 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-[#0F172A] tracking-tight leading-tight"
                 data-testid="detail-title"
               >
-                {repo.judul}
+                {repo.title}
               </h1>
 
               <p
@@ -145,7 +187,7 @@ export default function RepositoryDetailPage() {
               >
                 oleh{" "}
                 <span className="font-medium text-[#334155]">
-                  {repo.penulis}
+                  {repo.author}
                 </span>
               </p>
             </div>
@@ -177,12 +219,13 @@ export default function RepositoryDetailPage() {
                   className="text-[#334155] leading-relaxed text-base"
                   data-testid="detail-abstract"
                 >
-                  {repo.abstrak}
+                  {repo.abstract || "Tidak ada rincian abstrak disertakan."}
                 </p>
               </CardContent>
             </Card>
 
-            {/* PDF Preview */}
+            {/* Document Preview is simplified to just info box because actual PDF inline preview requires full token integration.
+                Plus "Pratinjau tidak tersedia dalam mode demo" is already there. */}
             <Card className="border-[#E2E8F0] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
               <CardContent className="p-6 md:p-8">
                 <h2 className="font-serif text-xl font-semibold text-[#0F172A] mb-4">
@@ -197,10 +240,10 @@ export default function RepositoryDetailPage() {
                       <FileText className="w-7 h-7 text-[#94A3B8]" />
                     </div>
                     <p className="text-sm font-medium text-[#334155] mb-1">
-                      Pratinjau PDF
+                      {repo.file_name || "Pratinjau PDF"}
                     </p>
                     <p className="text-xs text-[#94A3B8]">
-                      Pratinjau tidak tersedia dalam mode demo
+                      Pratinjau tidak tersedia saat ini. Silakan unduh dokumen untuk melihat isinya.
                     </p>
                   </div>
                 </div>
@@ -263,3 +306,4 @@ export default function RepositoryDetailPage() {
     </div>
   );
 }
+

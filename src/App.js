@@ -12,6 +12,8 @@ import RoleRoute from "@/components/auth/RoleRoute";
 import HomePage from "@/pages/HomePage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import RepositoryListPage from "@/pages/RepositoryListPage";
+import RepositoryDetailPage from "@/pages/RepositoryDetailPage";
 
 // Dashboard Pages
 import DashboardHomePage from "@/pages/dashboard/DashboardHomePage";
@@ -22,6 +24,7 @@ import ProgramStudiPage from "@/pages/dashboard/master/ProgramStudiPage";
 import DocTypePage from "@/pages/dashboard/master/DocTypePage";
 import UserListPage from "@/pages/dashboard/users/UserListPage";
 import RoleAccessPage from "@/pages/dashboard/users/RoleAccessPage";
+import ProfileSettingsPage from "@/pages/dashboard/users/ProfileSettingsPage";
 import DownloadLogsPage from "@/pages/dashboard/logs/DownloadLogsPage";
 
 function App() {
@@ -32,6 +35,8 @@ function App() {
           {/* Public Routes with Navbar Footer */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/repositories" element={<RepositoryListPage />} />
+            <Route path="/repository/:id" element={<RepositoryDetailPage />} />
             {/* Hanya yg blm login bisa akses Login/Register */}
             <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
             <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
@@ -69,7 +74,7 @@ function App() {
             <Route 
                path="repositories/:id/edit" 
                element={
-                 <RoleRoute permission={["edit_own_repo", "manage_repo_all", "manage_repo_prodi"]}>
+                 <RoleRoute permission={["edit_own_repo", "manage_repositories", "manage_repo_prodi"]}>
                    <DashboardRepositoryFormPage />
                  </RoleRoute>
                } 
@@ -126,6 +131,14 @@ function App() {
                  <RoleRoute permission={["view_download_logs", "view_download_logs_prodi"]}>
                    <DownloadLogsPage />
                  </RoleRoute>
+               } 
+            />
+            
+            {/* User Settings / Profile */}
+            <Route 
+               path="settings" 
+               element={
+                 <ProfileSettingsPage />
                } 
             />
           </Route>

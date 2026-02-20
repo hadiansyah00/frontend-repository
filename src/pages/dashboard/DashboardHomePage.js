@@ -60,8 +60,10 @@ export default function DashboardHomePage() {
         <div className="p-6 bg-white border border-slate-200 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Published</p>
-              <h3 className="mt-2 text-3xl font-bold text-slate-800">{stats.totalPublished}</h3>
+              <p className="text-sm font-medium text-slate-500">
+                {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'Publikasi Saya' : 'Total Published'}
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-800">{stats.totalPublished || 0}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
               <BookMarked className="w-6 h-6" />
@@ -76,8 +78,10 @@ export default function DashboardHomePage() {
         <div className="p-6 bg-white border border-orange-200 shadow-sm shadow-orange-100 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-orange-600">Menunggu Persetujuan</p>
-              <h3 className="mt-2 text-3xl font-bold text-slate-800">{stats.pendingReview}</h3>
+              <p className="text-sm font-medium text-orange-600">
+                 {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'Sedang Diulas' : 'Menunggu Persetujuan'}
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-800">{stats.pendingReview || 0}</h3>
             </div>
             <div className="p-3 bg-orange-100 text-orange-600 rounded-lg">
                <Clock className="w-6 h-6" />
@@ -91,37 +95,50 @@ export default function DashboardHomePage() {
         <div className="p-6 bg-white border border-slate-200 rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Pengguna</p>
-              <h3 className="mt-2 text-3xl font-bold text-slate-800">{stats.totalUsers}</h3>
+              <p className="text-sm font-medium text-slate-500">
+                 {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'Draft Disimpan' : 'Total Pengguna'}
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-800">
+                 {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? (stats.totalDrafts || 0) : (stats.totalUsers || 0)}
+              </h3>
             </div>
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
-               <Users className="w-6 h-6" />
+            <div className={`p-3 rounded-lg ${user?.role?.slug === 'mahasiswa' ? 'bg-slate-50 text-slate-600' : 'bg-purple-50 text-purple-600'}`}>
+               {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? <BookMarked className="w-6 h-6" /> : <Users className="w-6 h-6" />}
             </div>
           </div>
-          <div className="flex items-center gap-1 mt-4 text-sm font-medium text-emerald-600">
-            <ArrowUpRight className="w-4 h-4" />
-            <span>Pendaftar aktif</span>
+          <div className="flex items-center gap-1 mt-4 text-sm font-medium text-slate-500">
+            {user?.role?.slug !== 'mahasiswa' && user?.role?.slug !== 'dosen' && <ArrowUpRight className="w-4 h-4 text-emerald-600" />}
+            <span className={user?.role?.slug !== 'mahasiswa' && user?.role?.slug !== 'dosen' ? "text-emerald-600" : ""}>
+               {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'Belum diajukan' : 'Pendaftar aktif'}
+            </span>
           </div>
         </div>
 
-        <div className="p-6 bg-white border border-slate-200 rounded-xl">
+        <div className={`p-6 bg-white border rounded-xl ${user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'border-red-100 shadow-sm shadow-red-50' : 'border-slate-200'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Unduhan</p>
-              <h3 className="mt-2 text-3xl font-bold text-slate-800">{stats.totalDownloads}</h3>
+              <p className={`text-sm font-medium ${user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'text-red-500' : 'text-slate-500'}`}>
+                 {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'Ditolak / Revisi' : 'Total Unduhan'}
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-800">
+                 {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? (stats.totalRejected || 0) : (stats.totalDownloads || 0)}
+              </h3>
             </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-               <FileCheck className="w-6 h-6" />
+            <div className={`p-3 rounded-lg ${user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}>
+               {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? <Clock className="w-6 h-6" /> : <FileCheck className="w-6 h-6" />}
             </div>
           </div>
-          <div className="flex items-center gap-1 mt-4 text-sm font-medium text-emerald-600">
-            <ArrowUpRight className="w-4 h-4" />
-            <span>Riwayat tercatat</span>
+          <div className="flex items-center gap-1 mt-4 text-sm font-medium text-slate-500">
+             {user?.role?.slug !== 'mahasiswa' && user?.role?.slug !== 'dosen' && <ArrowUpRight className="w-4 h-4 text-emerald-600" />}
+             <span className={user?.role?.slug !== 'mahasiswa' && user?.role?.slug !== 'dosen' ? "text-emerald-600" : ""}>
+               {user?.role?.slug === 'mahasiswa' || user?.role?.slug === 'dosen' ? 'Perlu perbaikan' : 'Riwayat tercatat'}
+             </span>
           </div>
         </div>
       </div>
 
-      {/* Chart Section */}
+      {/* Chart Section - Hidden for Mahasiswa/Dosen */}
+      {user?.role?.slug !== 'mahasiswa' && user?.role?.slug !== 'dosen' && (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="p-6 bg-white border border-slate-200 rounded-xl lg:col-span-2">
           <h3 className="mb-6 text-lg font-semibold text-slate-800">
@@ -162,6 +179,7 @@ export default function DashboardHomePage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

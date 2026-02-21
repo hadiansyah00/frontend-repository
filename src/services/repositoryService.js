@@ -12,6 +12,11 @@ const repositoryService = {
     return response.data;
   },
 
+  getPublicRepositoryById: async (id) => {
+    const response = await api.get(`/public/repositories/${id}`);
+    return response.data;
+  },
+
   // Ambil detail 1 repository dengan id
   getRepositoryById: async (id) => {
     const response = await api.get(`/repositories/${id}`);
@@ -43,6 +48,17 @@ const repositoryService = {
   // Download URL constructor
   getDownloadUrl: (id) => {
     return `${api.defaults.baseURL}/repositories/${id}/download`;
+  },
+
+  downloadRepositoryBlob: async (id) => {
+    const response = await api.get(`/repositories/${id}/download`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  getPublicDownloadUrl: (id) => {
+    return `${api.defaults.baseURL}/public/repositories/${id}/download`;
   }
 };
 

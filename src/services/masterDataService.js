@@ -33,6 +33,11 @@ const masterDataService = {
     return response.data;
   },
 
+  getPublicDocTypes: async () => {
+    const response = await api.get("/public/doc-types");
+    return response.data;
+  },
+
   createDocType: async (data) => {
     const response = await api.post("/doc-types", data);
     return response.data;

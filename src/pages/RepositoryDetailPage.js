@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Download,
@@ -17,16 +17,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import repositoryService from "@/services/repositoryService";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RepositoryDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [repo, setRepo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRepo = async () => {
       try {
-        const data = await repositoryService.getRepositoryById(id);
+        const data = await repositoryService.getPublicRepositoryById(id);
         setRepo(data);
       } catch (error) {
         console.error("Failed to fetch repository details:", error);
@@ -73,12 +76,34 @@ export default function RepositoryDetailPage() {
   }
 
   const handleDownload = () => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      toast.error("Harap login terlebih dahulu untuk mengunduh dokumen.");
+    // 1. If public, anyone can download using the public endpoint without a token.
+    if (repo.access_level === "public") {
+      toast.success("Unduhan dimulai", { description: `Mengunduh "${repo.title}"` });
+      const url = repositoryService.getPublicDownloadUrl(id);
+      window.open(url, "_blank");
       return;
     }
 
+    // 2. If restricted or private, user must be logged in.
+    if (!isAuthenticated) {
+      toast.error("Harap login terlebih dahulu untuk mengunduh dokumen.");
+      navigate("/login");
+      return;
+    }
+
+    // 3. If private, check if user is the owner or an admin (role check)
+    // Here we do a basic client-side check. The backend also enforces this.
+    if (repo.access_level === "private") {
+      const isOwner = user?.id === repo.uploaded_by;
+      const isAdmin = user?.role?.slug !== "mahasiswa" && user?.role?.slug !== "dosen";
+      if (!isOwner && !isAdmin) {
+         toast.error("Akses Ditolak", { description: "Dokumen ini bersifat privat dan hanya bisa diakses oleh pemilik atau admin." });
+         return;
+      }
+    }
+
+    // Proceed with authenticated download
+    const token = localStorage.getItem("auth_token");
     toast.success("Unduhan dimulai", {
       description: `Mengunduh "${repo.title}"`,
     });
@@ -88,6 +113,27 @@ export default function RepositoryDetailPage() {
     
     // Open in new tab which will trigger the browser download due to content-disposition
     window.open(downloadUrl, "_blank");
+  };
+
+  const getAccessBadgeDisplay = () => {
+    switch(repo.access_level) {
+      case "public": return { label: "Public", className: "bg-emerald-50 text-emerald-600 border-0" };
+      case "private": return { label: "Private", className: "bg-red-50 text-red-600 border-0" };
+      case "restricted": default: return { label: "Restricted", className: "bg-amber-50 text-amber-600 border-0" };
+    }
+  };
+
+  const accessBadge = getAccessBadgeDisplay();
+
+  const isDownloadDisabled = () => {
+    if (repo.access_level === "public") return false;
+    if (!isAuthenticated) return true;
+    if (repo.access_level === "private") {
+      const isOwner = user?.id === repo.uploaded_by;
+      const isAdmin = user?.role?.slug !== "mahasiswa" && user?.role?.slug !== "dosen";
+      if (!isOwner && !isAdmin) return true;
+    }
+    return false;
   };
 
   const metaItems = [
@@ -113,7 +159,7 @@ export default function RepositoryDetailPage() {
     {
       icon: Shield,
       label: "Jenis Akses",
-      value: repo.status === "published" ? "Open Access" : "Private",
+      value: accessBadge.label,
     },
     {
       icon: Download,
@@ -155,17 +201,11 @@ export default function RepositoryDetailPage() {
                   {repo.year || "-"}
                 </Badge>
                 <Badge
-                  variant={
-                    repo.status === "published" ? "secondary" : "outline"
-                  }
-                  className={
-                    repo.status === "published"
-                      ? "bg-emerald-50 text-emerald-600 border-0 text-xs"
-                      : "text-[#64748B] text-xs"
-                  }
+                  variant="secondary"
+                  className={`${accessBadge.className} text-xs`}
                   data-testid="detail-access-badge"
                 >
-                  {repo.status === "published" ? "Open Access" : "Private"}
+                  {accessBadge.label}
                 </Badge>
                 {repo.prodi && (
                   <Badge variant="outline" className="text-xs text-[#64748B]">
@@ -194,11 +234,16 @@ export default function RepositoryDetailPage() {
 
             <Button
               onClick={handleDownload}
-              className="bg-[#F97316] hover:bg-[#ffc12fe7] text-white font-medium h-11 px-6 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] shrink-0"
+              disabled={isDownloadDisabled()}
+              className={`font-medium h-11 px-6 shadow-sm transition-all duration-200 shrink-0 ${
+                isDownloadDisabled() 
+                  ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
+                  : "bg-[#F97316] hover:bg-[#ffc12fe7] text-white hover:shadow-md hover:scale-[1.02]"
+              }`}
               data-testid="download-btn"
             >
               <Download className="w-4 h-4 mr-2" />
-              Unduh Dokumen
+              {repo.access_level !== "public" && !isAuthenticated ? "Login untuk Mengunduh" : "Unduh Dokumen"}
             </Button>
           </div>
         </div>
@@ -291,11 +336,16 @@ export default function RepositoryDetailPage() {
                   {/* Download Button */}
                   <Button
                     onClick={handleDownload}
-                    className="w-full bg-[#F97316] hover:bg-[#ffc12fe7] text-white font-medium h-11 shadow-sm hover:shadow-md transition-all duration-200"
+                    disabled={isDownloadDisabled()}
+                    className={`w-full font-medium h-11 shadow-sm transition-all duration-200 ${
+                       isDownloadDisabled() 
+                         ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
+                         : "bg-[#F97316] hover:bg-[#ffc12fe7] text-white hover:shadow-md"
+                    }`}
                     data-testid="sidebar-download-btn"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Unduh PDF
+                    {repo.access_level !== "public" && !isAuthenticated ? "Login untuk Unduh" : "Unduh PDF"}
                   </Button>
                 </CardContent>
               </Card>

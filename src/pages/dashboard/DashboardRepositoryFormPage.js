@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Save, Upload, Info, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Upload, Info, Loader2, FileText, Users, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ export default function DashboardRepositoryFormPage() {
     pembimbing2: "",
     year: new Date().getFullYear().toString(),
     status: "draft",
+    access_level: "restricted",
     abstract: "",
   });
 
@@ -57,6 +58,7 @@ export default function DashboardRepositoryFormPage() {
             pembimbing2: repo.pembimbing2 || "",
             year: repo.year.toString(),
             status: repo.status,
+            access_level: repo.access_level || "restricted",
             abstract: repo.abstract || "",
           });
         }
@@ -127,184 +129,245 @@ export default function DashboardRepositoryFormPage() {
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Link to="/dashboard/repositories">
-          <Button variant="outline" size="icon" className="w-8 h-8">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-        </Link>
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-800">
-            {isEdit ? "Edit Repositori" : "Tambah Karya Ilmiah Baru"}
-          </h2>
-          <p className="text-sm text-slate-500">
-            Lengkapi form di bawah ini dengan metadata dokumen yang valid.
-          </p>
+    <div className="max-w-5xl space-y-6 pb-24 relative">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Link to="/dashboard/repositories">
+            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full border-slate-200 hover:bg-slate-50 transition-colors">
+              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            </Button>
+          </Link>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+               {isEdit ? "Edit Karya Ilmiah" : "Unggah Karya Ilmiah"}
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+               {isEdit ? "Perbarui metadata dokumen yang telah diunggah." : "Lengkapi formulir di bawah ini dengan metadata dokumen yang valid."}
+            </p>
+          </div>
+        </div>
+        <div className="hidden sm:block">
+           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200/50">
+             <Info className="w-4 h-4" /> Form Metadata
+           </span>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="p-6 bg-white border border-slate-200 rounded-xl space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            
-            <div className="md:col-span-2 p-4 bg-orange-50/50 border border-orange-100 rounded-lg flex gap-3 text-orange-800 text-sm">
-              <Info className="w-5 h-5 shrink-0" />
-              <p>Pastikan nama penulis dan Dosen Pembimbing ditulis beserta gelar lengkap. File PDF yang diunggah harus mencakup halaman sampul hingga daftar pustaka dan lampiran yang diizinkan publik.</p>
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        
+        {/* Helper Alert */}
+        <div className="p-4 bg-orange-50/80 border border-orange-100 rounded-xl flex gap-3 text-orange-800 text-sm shadow-sm">
+          <Info className="w-5 h-5 shrink-0 mt-0.5 text-orange-500" />
+          <div className="leading-relaxed">
+            <strong className="block mb-1 font-semibold text-orange-900">Perhatikan Sebelum Mengunggah</strong>
+            Pastikan nama penulis dan Dosen Pembimbing ditulis beserta gelar lengkap. File PDF yang diunggah harus mencakup halaman sampul hingga daftar pustaka dan lampiran yang diizinkan untuk dibaca publik.
+          </div>
+        </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Judul Karya Ilmiah</label>
-              <input
-                type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
-                required
-              />
-            </div>
+        <div className="flex flex-col gap-8">
+          {/* Top Metadata Section */}
+          <div className="space-y-6">
+            <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-orange-500" /> Informasi Utama
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Karya Ilmiah <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={form.title}
+                    onChange={handleChange}
+                    placeholder="Masukkan judul lengkap dokumen..."
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800"
+                    required
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Penyusun / Penulis Utama</label>
-              <input
-                type="text"
-                name="author"
-                value={form.author}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">NPM / NIDN</label>
-              <input
-                type="text"
-                name="npm_nidn"
-                value={form.npm_nidn}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Dosen Pembimbing 1</label>
-              <input
-                type="text"
-                name="pembimbing1"
-                value={form.pembimbing1}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
-                required
-              />
-            </div>
-
-             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Dosen Pembimbing 2 (Optional)</label>
-              <input
-                type="text"
-                name="pembimbing2"
-                value={form.pembimbing2}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
-              />
-            </div>
-
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Program Studi</label>
-              <select
-                name="prodi_id"
-                value={form.prodi_id}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 bg-white"
-                required
-              >
-                <option value="">-- Pilih Prodi --</option>
-                {activeProdis.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Jenis Dokumen</label>
-              <select
-                name="doc_type_id"
-                value={form.doc_type_id}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 bg-white"
-                required
-              >
-                 <option value="">-- Pilih Jenis --</option>
-                 {activeDocTypes.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                 ))}
-              </select>
-            </div>
-
-             <div className="grid grid-cols-2 gap-4 md:col-span-2">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tahun Terbit</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Penulis Utama <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="author"
+                    value={form.author}
+                    onChange={handleChange}
+                    placeholder="Nama penulis beserta gelar"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">NPM / NIDN <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="npm_nidn"
+                    value={form.npm_nidn}
+                    onChange={handleChange}
+                    placeholder="Nomor identitas penulis"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800"
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Abstrak (ID/EN)</label>
+                  <textarea
+                    name="abstract"
+                    value={form.abstract}
+                    onChange={handleChange}
+                    rows={5}
+                    placeholder="Tuliskan abstrak dari karya ilmiah ini..."
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800 resize-y leading-relaxed"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
+              <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <Users className="w-5 h-5 text-orange-500" /> Dosen Pembimbing
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Pembimbing 1 <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    name="pembimbing1"
+                    value={form.pembimbing1}
+                    onChange={handleChange}
+                    placeholder="Nama Pembimbing 1"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Pembimbing 2 (Opsional)</label>
+                  <input
+                    type="text"
+                    name="pembimbing2"
+                    value={form.pembimbing2}
+                    onChange={handleChange}
+                    placeholder="Nama Pembimbing 2"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Sections: Categories & Upload */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-5">
+              <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-orange-500" /> Kategori & Status
+              </h3>
+              
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Program Studi <span className="text-red-500">*</span></label>
+                <select
+                  name="prodi_id"
+                  value={form.prodi_id}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800 cursor-pointer"
+                  required
+                >
+                  <option value="" disabled>-- Pilih Prodi --</option>
+                  {activeProdis.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Jenis Dokumen <span className="text-red-500">*</span></label>
+                <select
+                  name="doc_type_id"
+                  value={form.doc_type_id}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800 cursor-pointer"
+                  required
+                >
+                   <option value="" disabled>-- Pilih Jenis --</option>
+                   {activeDocTypes.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                   ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tahun <span className="text-red-500">*</span></label>
                   <input
                     type="number"
                     name="year"
                     value={form.year}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status Publikasi</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Status <span className="text-red-500">*</span></label>
                   <select
                     name="status"
                     value={form.status}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 bg-white"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800 cursor-pointer"
                     required
                   >
-                    <option value="draft">Draft (Simpan Sementara)</option>
-                    <option value="pending review">Submit for Review</option>
-                    
-                    {/* Hanya admin/reviewer yang bisa set status ini langsung jika perlu */}
-                    <option value="published" disabled={user?.role?.slug === "mahasiswa"}>Published (Live)</option>
-                    <option value="archived" disabled={user?.role?.slug === "mahasiswa"}>Archived (Arsip)</option>
+                    <option value="draft">Draft (Simpan)</option>
+                    <option value="pending review">Submit Review</option>
+                    <option value="published" disabled={user?.role?.slug === "mahasiswa"}>Published</option>
+                    <option value="archived" disabled={user?.role?.slug === "mahasiswa"}>Archived</option>
                   </select>
                 </div>
-             </div>
+              </div>
 
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Abstrak (ID/EN)</label>
-              <textarea
-                name="abstract"
-                value={form.abstract}
-                onChange={handleChange}
-                rows={5}
-                className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 resize-y"
-              ></textarea>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Hak Akses <span className="text-red-500">*</span></label>
+                <select
+                  name="access_level"
+                  value={form.access_level}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all text-slate-800 cursor-pointer"
+                  required
+                >
+                  <option value="public">Public (Terbuka)</option>
+                  <option value="restricted">Restricted (Login)</option>
+                  <option value="private">Private (Admin/Pemilik)</option>
+                </select>
+              </div>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Unggah Dokumen Inti (PDF Berlapis Watermark jika ada)</label>
-              <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-lg bg-slate-50/50">
-                <div className="space-y-2 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-slate-400" />
-                  <div className="flex justify-center text-sm text-slate-600">
-                    <label className="relative cursor-pointer bg-white px-2 py-0.5 rounded-md font-medium text-orange-600 hover:text-orange-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500 border border-orange-200 shadow-sm">
-                      <span>Browse file</span>
-                      <input type="file" className="sr-only" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
-                    </label>
-                    <p className="pl-2 pt-0.5">atau drag and drop</p>
+            <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-orange-500" /> File Lampiran
+              </h3>
+              <div className="group flex justify-center px-6 pt-6 pb-8 border-2 border-slate-200 border-dashed rounded-xl hover:bg-orange-50/50 hover:border-orange-300 transition-colors cursor-pointer relative overflow-hidden">
+                <input 
+                  type="file" 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                  accept=".pdf,.doc,.docx" 
+                  onChange={handleFileChange} 
+                />
+                <div className="space-y-3 text-center pointer-events-none">
+                  <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                    <Upload className="h-8 w-8 text-slate-400 group-hover:text-orange-500" />
                   </div>
-                  <p className="text-xs text-slate-500">Hanya format PDF, DOC, DOCX, Maks. 20MB</p>
+                  <div className="text-sm text-slate-600">
+                    <span className="font-semibold text-orange-600">Klik untuk unggah</span> atau drag and drop
+                  </div>
+                  <p className="text-xs text-slate-500">PDF, DOC, DOCX up to 20MB</p>
+                  
                   {file && (
-                    <p className="text-sm font-medium text-emerald-600 truncate max-w-xs mx-auto">
-                      {file.name}
-                    </p>
+                    <div className="pt-2">
+                       <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-200/50 max-w-full truncate">
+                         {file.name}
+                       </span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -312,9 +375,9 @@ export default function DashboardRepositoryFormPage() {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-8">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 px-2">
           <Link to="/dashboard/repositories">
-            <Button type="button" variant="outline" disabled={submitLoading}>Batal</Button>
+            <Button type="button" variant="outline" className="w-full sm:w-auto hover:bg-slate-50" disabled={submitLoading}>Batalkan</Button>
           </Link>
           <Button type="submit" disabled={submitLoading} className="gap-2 text-white bg-orange-600 hover:bg-orange-700">
             {submitLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}

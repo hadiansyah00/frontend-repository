@@ -47,8 +47,8 @@ export default function RepositoryListPage() {
     const fetchMasterData = async () => {
       try {
         const [prodiRes, docTypeRes] = await Promise.all([
-          masterDataService.getProdis(),
-          masterDataService.getDocTypes(),
+          masterDataService.getPublicProdis(),
+          masterDataService.getPublicDocTypes(),
         ]);
         setProdis(Array.isArray(prodiRes) ? prodiRes : prodiRes.data || []);
         setDocTypes(Array.isArray(docTypeRes) ? docTypeRes : docTypeRes.data || []);

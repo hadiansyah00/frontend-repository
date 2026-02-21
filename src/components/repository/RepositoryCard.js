@@ -1,11 +1,21 @@
 import { Link } from "react-router-dom";
-import { Download, ArrowRight, Calendar } from "lucide-react";
+import { Download, ArrowRight, Calendar, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function RepositoryCard({ repository }) {
-  const { id, title, author, year, abstract } = repository;
+  const { id, title, author, year, abstract, access_level } = repository;
+
+  const getAccessBadgeDisplay = () => {
+    switch(access_level) {
+      case "public": return { label: "Public", className: "bg-emerald-50 text-emerald-600 border-0" };
+      case "private": return { label: "Private", className: "bg-red-50 text-red-600 border-0" };
+      case "restricted": default: return { label: "Restricted", className: "bg-amber-50 text-amber-600 border-0" };
+    }
+  };
+
+  const accessBadge = getAccessBadgeDisplay();
 
   return (
     <Card
@@ -22,6 +32,14 @@ export default function RepositoryCard({ repository }) {
           >
             <Calendar className="w-3 h-3 mr-1" />
             {year || "-"}
+          </Badge>
+          <Badge
+            variant="secondary"
+            className={`${accessBadge.className} text-[10px] px-2 py-0.5`}
+            data-testid={`card-access-${id}`}
+          >
+            <Shield className="w-3 h-3 mr-1 inline-block" />
+            {accessBadge.label}
           </Badge>
           {/* Download count is currently not included in the list API response, so omitting it or leaving static for now */}
         </div>

@@ -38,7 +38,10 @@ api.interceptors.response.use(
       if (
         window.location.pathname !== "/login" &&
         window.location.pathname !== "/register" && 
-        window.location.pathname !== "/"
+        window.location.pathname !== "/" &&
+        !window.location.pathname.startsWith("/repositories") &&
+        !window.location.pathname.startsWith("/repository/") &&
+        !window.location.pathname.startsWith("/about")
       ) {
         window.location.href = "/login?expired=true";
       }

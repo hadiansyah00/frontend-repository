@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Ambil BASE_URL dari environment (.env file)
-const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+const API_URL = process.env.REACT_APP_BACKEND_URL || "https://apps-repo.sbh.ac.id";
 
 // Custom axios instance khusus API endpoint
 const api = axios.create({

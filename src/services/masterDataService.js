@@ -7,6 +7,11 @@ const masterDataService = {
     return response.data;
   },
 
+  getPublicProdis: async () => {
+    const response = await api.get("/public/prodi");
+    return response.data;
+  },
+
   createProdi: async (data) => {
     const response = await api.post("/prodi", data);
     return response.data;

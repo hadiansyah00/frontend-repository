@@ -61,12 +61,18 @@ export default function DashboardRepositoryFormPage() {
           });
         }
       } catch (error) {
-        toast.error("Gagal memuat data formular");
+        if (error.response?.status === 403) {
+           toast.error("Anda tidak memiliki akses ke repositori ini.");
+           navigate("/dashboard/repositories");
+        } else {
+           toast.error("Gagal memuat data formular");
+        }
       } finally {
         setLoading(false);
       }
     };
     initData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isEdit]);
 
   const handleChange = (e) => {

@@ -104,11 +104,11 @@ export default function RepositoryDetailPage() {
     {
       icon: Clock,
       label: "Tanggal Terbit",
-      value: new Date(repo.created_at).toLocaleDateString("id-ID", {
+      value: repo.createdAt || repo.created_at ? new Date(repo.createdAt || repo.created_at).toLocaleDateString("id-ID", {
         day: "numeric",
         month: "long",
         year: "numeric",
-      }),
+      }) : "-",
     },
     {
       icon: Shield,

@@ -50,10 +50,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, prodi_id) => {
     try {
       // 1. Hit API register
-      await authService.register({ name, email, password });
+      await authService.register({ name, email, password, prodi_id });
       // 2. Jika sukses auto-login, fetch data user
       const userData = await authService.getMe();
       

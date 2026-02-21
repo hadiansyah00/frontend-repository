@@ -12,6 +12,7 @@ import RoleRoute from "@/components/auth/RoleRoute";
 import HomePage from "@/pages/HomePage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
+import AboutPage from "@/pages/AboutPage";
 import RepositoryListPage from "@/pages/RepositoryListPage";
 import RepositoryDetailPage from "@/pages/RepositoryDetailPage";
 
@@ -37,6 +38,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/repositories" element={<RepositoryListPage />} />
             <Route path="/repository/:id" element={<RepositoryDetailPage />} />
+            <Route path="/about" element={<AboutPage />} />
             {/* Hanya yg blm login bisa akses Login/Register */}
             <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
             <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />

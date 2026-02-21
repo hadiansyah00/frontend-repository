@@ -7,6 +7,11 @@ const repositoryService = {
     return response.data;
   },
 
+  getPublicRepositories: async (params = {}) => {
+    const response = await api.get("/public/repositories", { params });
+    return response.data;
+  },
+
   // Ambil detail 1 repository dengan id
   getRepositoryById: async (id) => {
     const response = await api.get(`/repositories/${id}`);

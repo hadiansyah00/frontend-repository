@@ -73,7 +73,7 @@ export default function RepositoryListPage() {
         if (prodiFilter !== "all") params.prodi_id = prodiFilter;
         if (docTypeFilter !== "all") params.doc_type_id = docTypeFilter;
 
-        const res = await repositoryService.getRepositories(params);
+        const res = await repositoryService.getPublicRepositories(params);
         setRepositories(res.data || []);
         if (res.pagination) {
           setTotalPages(res.pagination.totalPages);

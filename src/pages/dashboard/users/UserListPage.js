@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Edit, Plus, Trash, Loader2 } from "lucide-react";
+import { Search, Edit, Plus, Trash, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -34,6 +34,7 @@ export default function UserListPage() {
   
   const initialFormState = { name: "", email: "", password: "", nip: "", role_id: "", prodi_id: "", status: "active" };
   const [form, setForm] = useState(initialFormState);
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -294,7 +295,16 @@ export default function UserListPage() {
                  <label className="block text-sm font-medium text-slate-700 mb-1">
                    Password {editingItem ? <span className="text-xs text-slate-400 font-normal">(Kosongkan jika tidak diubah)</span> : <span className="text-red-500">*</span>}
                  </label>
-                 <input name="password" type="password" value={form.password} onChange={handleFormChange} placeholder="*****" className="w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500" />
+                 <div className="relative">
+                   <input name="password" type={showPassword ? "text" : "password"} value={form.password} onChange={handleFormChange} placeholder="*****" className="w-full px-3 py-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 pr-10" />
+                   <button
+                     type="button"
+                     onClick={() => setShowPassword(!showPassword)}
+                     className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                   >
+                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                   </button>
+                 </div>
                </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

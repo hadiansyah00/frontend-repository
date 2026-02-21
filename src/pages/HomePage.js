@@ -23,8 +23,8 @@ export default function HomePage() {
     const fetchHomeData = async () => {
       try {
         const [repoRes, statsRes] = await Promise.all([
-          repositoryService.getRepositories({ page: 1, limit: 4 }),
-          dashboardService.getStats(),
+          repositoryService.getPublicRepositories({ page: 1, limit: 4 }),
+          dashboardService.getPublicStats(),
         ]);
 
         if (repoRes.data) {
@@ -100,39 +100,58 @@ export default function HomePage() {
   return (
     <div data-testid="homepage">
       {/* Hero Section */}
-      <section className="hero-bg py-20 md:py-32" data-testid="hero-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#F97316] mb-4 animate-fade-in-up">
-              Repositori Akademik Digital
-            </p>
-            <h1
-              className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0F172A] tracking-tight leading-[1.1] mb-6 animate-fade-in-up animation-delay-100"
-              data-testid="hero-title"
-            >
-              Jelajahi Karya
-              <span className="text-[#F97316]"> Ilmiah</span>
-            </h1>
-            <p className="text-base md:text-lg text-[#334155] leading-relaxed mb-10 max-w-xl mx-auto animate-fade-in-up animation-delay-200">
-              Temukan, akses, dan unduh ribuan penelitian akademik dari berbagai
-              disiplin ilmu dalam satu platform terpadu.
-            </p>
+    {/* Hero Section */}
+<section
+  className="relative hero-bg py-20 md:py-32 overflow-hidden"
+  data-testid="hero-section"
+>
+  {/* LEFT DECORATION */}
+  <div className="hidden md:block absolute left-0 top-24 opacity-[0.08] pointer-events-none">
+    <BookOpen className="w-72 h-72 text-[#F97316] rotate-[-12deg]" />
+  </div>
 
-            {/* Hero Search */}
-            <div
-              className="max-w-xl mx-auto animate-fade-in-up animation-delay-300"
-              onKeyDown={handleKeyDown}
-            >
-              <SearchInput
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="Cari judul, penulis, atau kata kunci..."
-                variant="hero"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+  {/* RIGHT DECORATION */}
+  <div className="hidden md:block absolute right-0 bottom-16 opacity-[0.06] pointer-events-none">
+    <Layers className="w-80 h-80 text-[#0F172A] rotate-[8deg]" />
+  </div>
+
+  {/* OPTIONAL ABSTRACT CIRCLE */}
+  <div className="hidden md:block absolute right-1/4 top-10 w-64 h-64 rounded-full bg-[#F97316]/10 blur-3xl" />
+
+  <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-3xl mx-auto text-center">
+      <p className="text-xs font-bold uppercase tracking-widest text-[#F97316] mb-4 animate-fade-in-up">
+        Repositori Akademik Digital
+      </p>
+
+      <h1
+        className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0F172A] tracking-tight leading-[1.1] mb-6 animate-fade-in-up animation-delay-100"
+        data-testid="hero-title"
+      >
+        Jelajahi Karya
+        <span className="text-[#F97316]"> Ilmiah</span>
+      </h1>
+
+      <p className="text-base md:text-lg text-[#334155] leading-relaxed mb-10 max-w-xl mx-auto animate-fade-in-up animation-delay-200">
+        Temukan, akses, dan unduh ribuan penelitian akademik dari berbagai
+        disiplin ilmu dalam satu platform terpadu.
+      </p>
+
+      {/* Hero Search */}
+      <div
+        className="max-w-xl mx-auto animate-fade-in-up animation-delay-300"
+        onKeyDown={handleKeyDown}
+      >
+        <SearchInput
+          value={searchQuery}
+          onChange={handleSearch}
+          placeholder="Cari judul, penulis, atau kata kunci..."
+          variant="hero"
+        />
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Statistics */}
       <section

@@ -25,6 +25,7 @@ export default function DownloadLogsPage() {
 
   useEffect(() => {
     fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, currentPage]);
 
   const fetchLogs = async () => {
@@ -106,10 +107,10 @@ export default function DownloadLogsPage() {
                     logs.map((log) => (
                       <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="px-6 py-4 text-slate-600 font-mono text-xs whitespace-nowrap">
-                           {new Date(log.download_date || log.createdAt).toLocaleString("id-ID", {
+                           {log.createdAt || log.download_date ? new Date(log.createdAt || log.download_date).toLocaleString("id-ID", {
                              year: "numeric", month: "long", day: "numeric",
                              hour: '2-digit', minute: '2-digit', second: '2-digit'
-                           })}
+                           }) : "-"}
                         </td>
                         <td className="px-6 py-4">
                            <div className="flex items-center gap-2">

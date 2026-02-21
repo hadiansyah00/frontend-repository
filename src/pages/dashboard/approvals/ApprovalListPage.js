@@ -138,11 +138,11 @@ export default function ApprovalListPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-slate-600">
-                        {new Date(item.created_at || item.createdAt).toLocaleDateString("id-ID", {
+                        {item.createdAt || item.created_at ? new Date(item.createdAt || item.created_at).toLocaleDateString("id-ID", {
                            year: "numeric",
                            month: "long",
                            day: "numeric",
-                        })}
+                        }) : "-"}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
